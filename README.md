@@ -140,8 +140,8 @@ console.print(f'Generated in {delta}')
 
 ## Run with Streamlit interface
 Download the files from the repo
-- logo.png
-- stapp1.5-nuextractTINY.py
+- `logo.png`
+- `stapp1.5-nuextractTINY.py`
 all of them in the main project directory
 
 then with the venv activated run in the terminal:
