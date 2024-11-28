@@ -135,6 +135,9 @@ console.print(f'Generated in {delta}')
 
 ---
 
+<img src='https://github.com/fabiomatricardi/NuExtract-1.5-openvino/blob/main/streamlitapp.png' width=800>
+
+
 ## Run with Streamlit interface
 Download the files from the repo
 - logo.png
