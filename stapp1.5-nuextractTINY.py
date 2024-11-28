@@ -99,9 +99,9 @@ with st.sidebar:
     st.session_state.presence = st.slider('Repeat Penalty:', min_value=0.0, max_value=2.0, value=1.11, step=0.02)
     st.markdown(f"**Logfile**: {st.session_state.logfilename}")
     statspeed = st.markdown(f'💫 speed: {st.session_state.speed}  t/s')
-    gentime = st.markdown(f'💫 speed: {st.session_state.time}  seconds')
+    gentime = st.markdown(f'⏱️ gen time: {st.session_state.time}  seconds')
     btnClear = st.button("Load example",type="primary", use_container_width=True)
-    st.image('logo.png', use_column_width=True)
+    st.image('logo.png', use_container_width=True)
 
 # MAIN WINDOWN
 st.session_state.jsonformat = st.text_area('JSON Schema to be applied', value="", height=150,   
@@ -175,7 +175,7 @@ if extract_btn:
         st.session_state.time = totalseconds
         st.session_state.speed = totalTokens/totalseconds
         statspeed.markdown(f'💫 speed: {st.session_state.speed:.2f}  t/s')
-        gentime.markdown(f'💫 speed: {st.session_state.time:.2f}  seconds')
+        gentime.markdown(f'⏱️ gen time: {st.session_state.time:.2f}  seconds')
         totalstring = f"""GENERATED STRING
 
 {result}
