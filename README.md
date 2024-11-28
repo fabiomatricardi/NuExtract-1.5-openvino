@@ -71,3 +71,84 @@ This will create a new folder called `ov_NuExtract-1.5-tiny` with the IR model i
 - [API documentation: ](https://docs.openvino.ai/2024/api/genai_api/_autosummary/openvino_genai.html#module-openvino_genai)
 
 
+### Basic usage
+```
+import warnings
+warnings.filterwarnings(action='ignore')
+import datetime
+import tiktoken
+import json
+from rich.console import Console
+from rich.panel import Panel
+import openvino_genai as ov_genai
+
+console = Console(width=80)
+console.print('Loading the model...', end='')
+model_dir = 'ov_NuExtract-1.5-tiny'
+pipe = ov_genai.LLMPipeline(model_dir, 'CPU')
+console.print('✅  done')
+console.print('Ready for generation')
+# ACTIONS
+jsontemplate = """{
+    "Model": {
+        "Name": "",
+        "Number of parameters": "",
+        "Number of max token": "",
+        "Architecture": []
+    },
+    "Usage": {
+        "Use case": [],
+        "Licence": ""
+    }
+}"""
+text = """We introduce Mistral 7B, a 7–billion-parameter language model engineered for
+superior performance and efficiency. Mistral 7B outperforms the best open 13B
+model (Llama 2) across all evaluated benchmarks, and the best released 34B
+model (Llama 1) in reasoning, mathematics, and code generation. Our model
+leverages grouped-query attention (GQA) for faster inference, coupled with sliding
+window attention (SWA) to effectively handle sequences of arbitrary length with a
+reduced inference cost. We also provide a model fine-tuned to follow instructions,
+Mistral 7B – Instruct, that surpasses Llama 2 13B – chat model both on human and
+automated benchmarks. Our models are released under the Apache 2.0 license.
+Code: <https://github.com/mistralai/mistral-src>
+Webpage: <https://mistral.ai/news/announcing-mistral-7b/>"""
+
+prompt = f"""<|input|>\n### Template:
+{jsontemplate}
+
+### Text:
+{text}
+<|output|>
+"""
+start = datetime.datetime.now()
+with console.status("Generating json reply", spinner='dots8',):
+    output = pipe.generate(prompt, temperature=0.2, 
+                        do_sample=True, 
+                        max_new_tokens=500, 
+                        repetition_penalty=1.178,
+                        eos_token_id = 151643)
+delta = datetime.datetime.now() - start
+console.print(output)
+console.rule()
+console.print(f'Generated in {delta}')
+```
+
+---
+
+## Run with Streamlit interface
+Download the files from the repo
+- logo.png
+- stapp1.5-nuextractTINY.py
+all of them in the main project directory
+
+then with the venv activated run in the terminal:
+```
+streamlit run .\stapp1.5-nuextractTINY.py
+```
+
+---
+
+
+
+
+
