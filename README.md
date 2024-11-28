@@ -1,4 +1,4 @@
-<img src='https://github.com/fabiomatricardi/NuExtract-1.5-openvino/blob/main/logo.png' width=400>
+<img src='https://github.com/fabiomatricardi/NuExtract-1.5-openvino/blob/main/logo_long.png' width=800>
 
 # NuExtract-1.5-openvino
 Extract data with LLM and openvino
