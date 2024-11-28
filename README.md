@@ -10,7 +10,7 @@ Note: This model is trained to prioritize pure extraction, so in most cases all 
 
 ### Convert the model Openvino IR
 Install dependencies in a new virtual environment
-```
+```bash
 # Step 1: Create virtual environment
 python -m venv venv
 # Step 2: Activate virtual environment
@@ -72,7 +72,7 @@ This will create a new folder called `ov_NuExtract-1.5-tiny` with the IR model i
 
 
 ### Basic usage
-```
+```python
 import warnings
 warnings.filterwarnings(action='ignore')
 import datetime
@@ -145,7 +145,7 @@ Download the files from the repo
 all of them in the main project directory
 
 then with the venv activated run in the terminal:
-```
+```bash
 streamlit run .\stapp1.5-nuextractTINY.py
 ```
 
