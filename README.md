@@ -18,7 +18,7 @@ venv\Scripts\activate
 # Step 3: Upgrade pip to latest version
 python -m pip install --upgrade pip
 # Step 4: Download and install the package
-pip install openvino==2024.5.0
+pip install openvino-genai==2024.5.0
 ```
 This will install the dependencies for the runtime. But if you also want to prepare and optimize your model to OpenVino IR format you need also:
 ```
