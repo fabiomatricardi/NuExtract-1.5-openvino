@@ -13,7 +13,7 @@ Note: This model is trained to prioritize pure extraction, so in most cases all 
 
 ---
 
-### Convert the model Openvino IR
+### Pre-requisites
 Install dependencies in a new virtual environment
 ```bash
 # Step 1: Create virtual environment
@@ -22,51 +22,138 @@ python -m venv venv
 venv\Scripts\activate
 # Step 3: Upgrade pip to latest version
 python -m pip install --upgrade pip
-# Step 4: Download and install the package
+```
+
+## This is the OpenVINO IR format of the model, quantized in int8
+The model was created with the Optimum-Intel libray cli-command
+#### Dependencies required to create the model
+There is an open clash in dependencies versions between optiumum-intel and openvino-genai
+> ⚠️ Exporting tokenizers to OpenVINO is not supported for tokenizers version > 0.19 and openvino version <= 2024.4. Please downgrade to tokenizers version <= 0.19 to export tokenizers to OpenVINO.
+
+
+So for the model conversion the only dependency you need is
+
+
+```
+pip install  -U "openvino>=2024.3.0" "openvino-genai"
+pip install "torch>=2.1" "nncf>=2.7" "transformers>=4.40.0" "onnx<1.16.2" "optimum>=1.16.1" "accelerate" "datasets>=2.14.6" "git+https://github.com/huggingface/optimum-intel.git" --extra-index-url https://download.pytorch.org/whl/cpu
+```
+The instructions are from the amazing  [OpenVINO notebooks](https://docs.openvino.ai/2024/notebooks/llm-question-answering-with-output.html#prerequisites)<br>
+vanilla pip install will create clashes among dependencies/versions<br>
+This command will install, among others:
+```
+tokenizers==0.20.3
+torch==2.5.1+cpu
+transformers==4.46.3
+nncf==2.14.0
+numpy==2.1.3
+onnx==1.16.1
+openvino==2024.5.0
+openvino-genai==2024.5.0.0
+openvino-telemetry==2024.5.0
+openvino-tokenizers==2024.5.0.0
+optimum==1.23.3
+optimum-intel @ git+https://github.com/huggingface/optimum-intel.git@c454b0000279ac9801302d726fbbbc1152733315
+```
+
+
+#### How to quantized the original model
+After the previous step you are enabled to run the following command (considering that you downloaded all the model weights and files into a subfolder called `NuExtract-1.5-tiny` from the [official model repository](https://huggingface.co/numind/NuExtract-v1.5))
+```bash
+optimum-cli export openvino --model NuExtract-1.5-tiny --task text-generation-with-past --trust-remote-code --weight-format int8 ov_NuExtract-1.5-tiny
+```
+this will start the process and produce the following messages, without any fatal error
+
+
+<p align="left">
+<img src="https://huggingface.co/FM-1976/ov_NuExtract-1.5-tiny/resolve/main/theRightWay.png" style="width: 600; height: auto;">
+</p>
+
+
+
+#### Dependencies required to run the model with `openvino-genai`
+If you simply need to run already converted models into OpenVINO IR format, you need to install only openvino-genai
+```
 pip install openvino-genai==2024.5.0
 ```
-This will install the dependencies for the runtime. But if you also want to prepare and optimize your model to OpenVino IR format you need also:
+
+
+## How to use the model with openvino-genai
+considering you also have python-rich installed (that is coming together with optimum-intel... otherwise `pip install rich`)
+```python
+"""
+followed official tutorial
+https://docs.openvino.ai/2024/notebooks/llm-question-answering-with-output.html
+"""
+# MAIN IMPORTS
+import warnings
+warnings.filterwarnings(action='ignore')
+import datetime
+from rich.console import Console
+from rich.panel import Panel
+import openvino_genai as ov_genai
+# SETTING CONSOLE WIDTH
+console = Console(width=80)
+# LOADING THE MODEL
+console.print('Loading the model...', end='')
+model_dir = 'ov_NuExtract-1.5-tiny'
+pipe = ov_genai.LLMPipeline(model_dir, 'CPU')
+console.print('✅  done')
+console.print('Ready for generation')
+# PROMPT FORMATTING
+jsontemplate = """{
+    "Model": {
+        "Name": "",
+        "Number of parameters": "",
+        "Number of max token": "",
+        "Architecture": []
+    },
+    "Usage": {
+        "Use case": [],
+        "Licence": ""
+    }
+}"""
+text = """We introduce Mistral 7B, a 7–billion-parameter language model engineered for
+superior performance and efficiency. Mistral 7B outperforms the best open 13B
+model (Llama 2) across all evaluated benchmarks, and the best released 34B
+model (Llama 1) in reasoning, mathematics, and code generation. Our model
+leverages grouped-query attention (GQA) for faster inference, coupled with sliding
+window attention (SWA) to effectively handle sequences of arbitrary length with a
+reduced inference cost. We also provide a model fine-tuned to follow instructions,
+Mistral 7B – Instruct, that surpasses Llama 2 13B – chat model both on human and
+automated benchmarks. Our models are released under the Apache 2.0 license.
+Code: <https://github.com/mistralai/mistral-src>
+Webpage: <https://mistral.ai/news/announcing-mistral-7b/>"""
+
+prompt = f"""<|input|>\n### Template:
+{jsontemplate}
+
+### Text:
+{text}
+<|output|>
+"""
+# START PIPELINE setting eos_token_id = 151643
+start = datetime.datetime.now()
+with console.status("Generating json reply", spinner='dots8',):
+    output = pipe.generate(prompt, temperature=0.2, 
+                        do_sample=True, 
+                        max_new_tokens=500, 
+                        repetition_penalty=1.178,
+                        eos_token_id = 151643)
+delta = datetime.datetime.now() - start
+# PRINT THE OUTPUT
+console.print(output)
+console.rule()
+console.print(f'Generated in {delta}')
+
 ```
-pip install optimum-intel[openvino] 
-```
->Note that with the installation of the optimum-intel libraries, a bunch of other packages are included:
-```
-Installing collected packages: sentencepiece, pytz, ninja, mpmath, jstyleson, 
-grapheme, xxhash, wrapt, watchdog, urllib3, tzdata, typing-extensions, 
-tornado, toml, threadpoolctl, tenacity, tabulate, sympy, smmap, six, 
-setuptools, safetensors, rpds-py, regex, pyyaml, pyreadline3, pyparsing, 
-pygments, psutil, protobuf, pillow, numpy, networkx, natsort, narwhals, 
-multidict, mdurl, MarkupSafe, kiwisolver, joblib, idna, fsspec, frozenlist, 
-fonttools, filelock, dill, cycler, colorama, charset-normalizer, certifi, 
-cachetools, blinker, attrs, aiohappyeyeballs, about-time, yarl, tqdm, scipy, 
-requests, referencing, python-dateutil, pydot, pyarrow, onnx, multiprocess, 
-markdown-it-py, jinja2, humanfriendly, gitdb, Deprecated, contourpy, cma, 
-click, autograd, alive-progress, aiosignal, torch, tiktoken, scikit-learn, 
-rich, pydeck, pandas, matplotlib, jsonschema-specifications, 
-huggingface-hub, gitpython, coloredlogs, aiohttp, tokenizers, pymoo, 
-jsonschema, transformers, nncf, datasets, altair, streamlit, optimum, 
-optimum-intel
-```
+
 
 For the graphic interface also:
 ```
 pip install tiktoken streamlit
 ```
 
-## How to convert the model
-In this repo I will explain how to convert the latest NuMind model called **NuExtract-1.5-tiny**
-
-Download the model files from the official Hugging Face repository
-[NuExtract-1.5-tiny
-](https://huggingface.co/numind/NuExtract-1.5-tiny)
-
-I put all the files into a subfolder called `NuExtract-1.5-tiny`
-
-Open your terminal, and with the venv activated run:
-```
-optimum-cli export openvino --model NuExtract-1.5-tiny --task text-generation-with-past --trust-remote-code --weight-format int8 ov_NuExtract-1.5-tiny
-```
-This will create a new folder called `ov_NuExtract-1.5-tiny` with the IR model in quantized format `int8` together with its tokenizers
 
 ## Using Hugging Face Hub
 You can find directly the model weights in OpenVINO IR format [in my HF Model Repository](https://huggingface.co/FM-1976/ov_NuExtract-1.5-tiny)
