@@ -68,6 +68,15 @@ optimum-cli export openvino --model NuExtract-1.5-tiny --task text-generation-wi
 ```
 This will create a new folder called `ov_NuExtract-1.5-tiny` with the IR model in quantized format `int8` together with its tokenizers
 
+## Using Hugging Face Hub
+You can find directly the model weights in OpenVINO IR format [in my HF Model Repository](https://huggingface.co/FM-1976/ov_NuExtract-1.5-tiny)
+
+
+> TIP: **WHERE TO DOWNLOAD**
+>
+> put all the files into a subfolder called `ov_NuExtract-1.5-tiny` 
+
+
 #### Resources
 - [tutorial](https://docs.openvino.ai/2024/notebooks/llm-question-answering-with-output.html)
 - [model-optimization-guide](https://docs.openvino.ai/2024/openvino-workflow/model-optimization-guide/weight-compression.html) 
